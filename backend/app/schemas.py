@@ -3,12 +3,23 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_serializer
 
 from .core.redaction import truncate_text
 from .services.settings import GeneralSettings
+
+
+def _ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+# Response timestamps are always timezone-aware so browsers never reinterpret a
+# naive datetime as local time.
+UTCDateTime = Annotated[datetime, AfterValidator(_ensure_utc)]
 
 
 def to_naive_utc(value: datetime) -> datetime:
@@ -130,8 +141,8 @@ class EventOut(APIModel):
     id: str
     agent_id: str
     session_id: str
-    timestamp: datetime
-    received_at: datetime
+    timestamp: UTCDateTime
+    received_at: UTCDateTime
     tool_name: str
     action: str | None
     status: str
@@ -155,8 +166,8 @@ class SessionOut(APIModel):
     id: str
     agent_id: str
     status: str
-    started_at: datetime
-    ended_at: datetime | None
+    started_at: UTCDateTime
+    ended_at: UTCDateTime | None
     event_count: int
     metadata: dict[str, Any] | None = Field(None, validation_alias="meta")
     agent_name: str | None = None
@@ -174,19 +185,19 @@ class DetectionOut(APIModel):
     evidence: dict[str, Any]
     explanation: str
     recommended_action: str
-    first_seen_at: datetime
-    last_seen_at: datetime
-    created_at: datetime
-    updated_at: datetime
+    first_seen_at: UTCDateTime
+    last_seen_at: UTCDateTime
+    created_at: UTCDateTime
+    updated_at: UTCDateTime
     ai_explanation: dict[str, Any] | None = None
-    ai_generated_at: datetime | None = None
+    ai_generated_at: UTCDateTime | None = None
 
 
 class IncidentNoteOut(APIModel):
     id: str
     author: str
     body: str
-    created_at: datetime
+    created_at: UTCDateTime
 
 
 class InterventionOut(APIModel):
@@ -199,8 +210,8 @@ class InterventionOut(APIModel):
     approval_status: str
     execution_status: str
     initiated_by: str
-    requested_at: datetime
-    completed_at: datetime | None
+    requested_at: UTCDateTime
+    completed_at: UTCDateTime | None
     simulated: bool
     result: dict[str, Any] | None
 
@@ -211,7 +222,7 @@ class AuditOut(APIModel):
     action: str
     resource_type: str
     resource_id: str
-    timestamp: datetime
+    timestamp: UTCDateTime
     details: dict[str, Any] | None
 
 
@@ -227,9 +238,9 @@ class IncidentOut(APIModel):
     detection_id: str
     detection_category: str | None = None
     confidence: float | None = None
-    created_at: datetime
-    updated_at: datetime
-    resolved_at: datetime | None
+    created_at: UTCDateTime
+    updated_at: UTCDateTime
+    resolved_at: UTCDateTime | None
     evidence_event_count: int = 0
 
 
@@ -248,8 +259,8 @@ class AgentOut(APIModel):
     status: str
     is_demo: bool
     configuration: dict[str, Any] | None
-    created_at: datetime
-    last_seen_at: datetime | None
+    created_at: UTCDateTime
+    last_seen_at: UTCDateTime | None
     session_count: int = 0
     event_count: int = 0
     open_incidents: int = 0
@@ -328,9 +339,9 @@ class ApiKeyOut(APIModel):
     id: str
     name: str
     prefix: str
-    created_at: datetime
-    last_used_at: datetime | None
-    revoked_at: datetime | None
+    created_at: UTCDateTime
+    last_used_at: UTCDateTime | None
+    revoked_at: UTCDateTime | None
 
 
 class ApiKeyCreated(ApiKeyOut):

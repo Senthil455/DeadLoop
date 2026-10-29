@@ -105,7 +105,7 @@ def _healthy_events(agent_id: str, session_id: str, start) -> list[EventIn]:
 def _exact_events(agent_id: str, session_id: str, start) -> list[EventIn]:
     args = {"query": "database connection error timeout retry"}
     events = []
-    for index in range(5):
+    for index in range(4):
         events.append(
             _event(
                 event_id=f"exact-{index}-{secrets.token_hex(3)}",

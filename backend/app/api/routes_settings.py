@@ -184,8 +184,8 @@ def prune_retention(
         )
     ).scalars().all()
     ids = [session.id for session in old_sessions]
-    for session in old_sessions:
-        db.delete(session)
+    if ids:
+        db.execute(delete(Session).where(Session.id.in_(ids)))
     audit(
         db,
         "admin",

@@ -157,7 +157,7 @@ def list_sessions(
             select(Agent).where(Agent.id.in_({s.agent_id for s in sessions}))
         ).scalars().all()
     }
-    return [session_to_dict(db, session, agent_names.get(session.agent_id)) for session in sessions]
+    return [session_to_dict(db, session, agent_name=agent_names.get(session.agent_id)) for session in sessions]
 
 
 @router.get("/sessions/{session_id}", response_model=SessionDetailOut)
@@ -200,7 +200,7 @@ def get_session(
     tools = db.execute(
         select(Event.tool_name).where(Event.session_id == session.id).distinct().order_by(Event.tool_name)
     ).scalars().all()
-    data = session_to_dict(db, session, agent.name if agent else None)
+    data = session_to_dict(db, session, agent_name=agent.name if agent else None)
     data.update(
         {
             "events": events,
