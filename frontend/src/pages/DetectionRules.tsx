@@ -5,7 +5,6 @@ import { errorText, useApi, useDocumentTitle } from "../hooks";
 import type { DetectionSettings } from "../types";
 import {
   Button,
-  Card,
   ErrorState,
   Field,
   Icon,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { formatDate, formatDuration, formatNumber, formatShortDate, timeAgo } from "../api";
+import { formatDate, formatDuration, formatNumber, formatShortDate } from "../api";
 import { useApi, useDocumentTitle } from "../hooks";
 import type { SessionDetail, TraceEvent } from "../types";
 import {
@@ -13,7 +13,6 @@ import {
   MetaList,
   PageHeader,
   SeverityChip,
-  SkeletonRows,
   StatusChip,
 } from "../components/ui";
 
