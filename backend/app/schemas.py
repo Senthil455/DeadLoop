@@ -242,6 +242,7 @@ class IncidentOut(APIModel):
     updated_at: UTCDateTime
     resolved_at: UTCDateTime | None
     evidence_event_count: int = 0
+    evidence_event_ids: list[str] = Field(default_factory=list)
 
 
 class IncidentDetail(IncidentOut):

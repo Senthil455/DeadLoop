@@ -102,6 +102,9 @@ def incident_to_dict(
         "evidence_event_count": len((detection.evidence or {}).get("event_ids", []))
         if detection
         else 0,
+        "evidence_event_ids": (detection.evidence or {}).get("event_ids", [])
+        if detection
+        else [],
     }
     if include_detail:
         data["detection"] = detection
