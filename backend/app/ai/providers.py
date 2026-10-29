@@ -289,13 +289,15 @@ def explain_incident(db: DbSession, incident: Incident) -> AIResult:
         raise ValueError("Incident has no detection.")
     enabled, base_url, model, api_key, timeout = _ai_config(db)
     if not (enabled and base_url and model):
-        return deterministic_explanation(incident, detection)
-    provider = OpenAICompatibleProvider(base_url, model, api_key, timeout)
-    result = provider.analyze_incident(incident, detection)
-    if result.source == "ai":
-        detection.ai_explanation = result.to_dict()
-        detection.ai_generated_at = utcnow()
-        db.flush()
+        result = deterministic_explanation(incident, detection)
+    else:
+        provider = OpenAICompatibleProvider(base_url, model, api_key, timeout)
+        result = provider.analyze_incident(incident, detection)
+    # Persist every outcome, including deterministic fallbacks, so the dashboard
+    # can show the explanation the operator just requested after it reloads.
+    detection.ai_explanation = result.to_dict()
+    detection.ai_generated_at = utcnow()
+    db.flush()
     return result
 
 

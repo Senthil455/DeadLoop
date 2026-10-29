@@ -1,0 +1,32 @@
+services:
+  deadloop:
+    build:
+      context: .
+    ports:
+      - "${DEADLOOP_BIND_ADDRESS:-127.0.0.1}:${DEADLOOP_PORT:-8000}:8000"
+    environment:
+      DEADLOOP_ENV: production
+      DEADLOOP_ADMIN_TOKEN: "${DEADLOOP_ADMIN_TOKEN:?Set DEADLOOP_ADMIN_TOKEN to a long random value}"
+      DEADLOOP_DATABASE_URL: sqlite:////app/backend/data/deadloop.db
+      DEADLOOP_AUTO_CREATE: "0"
+      DEADLOOP_CORS_ORIGINS: "${DEADLOOP_CORS_ORIGINS:-http://localhost:8000}"
+      DEADLOOP_MAX_REQUEST_BYTES: "${DEADLOOP_MAX_REQUEST_BYTES:-262144}"
+      DEADLOOP_MAX_BATCH_SIZE: "${DEADLOOP_MAX_BATCH_SIZE:-100}"
+      DEADLOOP_AI_ENABLED: "${DEADLOOP_AI_ENABLED:-false}"
+      DEADLOOP_AI_BASE_URL: "${DEADLOOP_AI_BASE_URL:-}"
+      DEADLOOP_AI_MODEL: "${DEADLOOP_AI_MODEL:-}"
+      DEADLOOP_AI_API_KEY: "${DEADLOOP_AI_API_KEY:-}"
+      DEADLOOP_AI_TIMEOUT_SECONDS: "${DEADLOOP_AI_TIMEOUT_SECONDS:-12}"
+    volumes:
+      - deadloop-data:/app/backend/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  deadloop-data:

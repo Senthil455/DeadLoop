@@ -4,11 +4,22 @@ from __future__ import annotations
 
 import json
 
+import pytest
 from sqlalchemy import select
 
+from app.config import DEV_ADMIN_TOKEN, Settings
 from app.database import SessionLocal
 from app.models import ApiKey, Event, Incident
 from tests.conftest import ingest, sample_event
+
+
+def test_production_rejects_default_admin_token():
+    with pytest.raises(RuntimeError, match="DEADLOOP_ADMIN_TOKEN"):
+        Settings(environment="production", admin_token=DEV_ADMIN_TOKEN).validate_runtime()
+    Settings(
+        environment="production",
+        admin_token="a-long-production-only-token-7f29c1",
+    ).validate_runtime()
 
 
 def test_health_is_public_and_does_not_leak_secrets(client):

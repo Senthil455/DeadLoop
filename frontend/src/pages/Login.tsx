@@ -102,7 +102,7 @@ export default function LoginPage() {
                 autoFocus
                 id="admin-token"
                 onChange={(event) => setValue(event.target.value)}
-                placeholder="dl_admin_…"
+                placeholder="Administrator token"
                 type={visible ? "text" : "password"}
                 value={value}
               />
@@ -115,7 +115,7 @@ export default function LoginPage() {
               </button>
             </span>
             <span className="field-hint">
-              The token is exchanged for this session only and stored in this browser.
+              The token is stored in this browser and sent only to this DEADLOOP server.
             </span>
           </label>
 

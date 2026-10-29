@@ -97,6 +97,9 @@ def test_ai_disabled_returns_deterministic_explanation(client, admin_headers, in
     expected = set(detail["detection"]["evidence"]["event_ids"])
     assert set(body["explanation"]["referenced_event_ids"]) == expected
     assert "not a probability" in body["explanation"]["observed_facts"][1]
+    assert detail["detection"]["ai_explanation"]["source"] == "deterministic"
+    assert detail["detection"]["ai_explanation"]["fallback"] is True
+    assert detail["detection"]["ai_generated_at"].endswith("Z")
 
 
 def test_ai_valid_output_is_structured_and_filters_fabricated_event_ids(
@@ -144,6 +147,11 @@ def test_ai_provider_failure_falls_back_without_breaking_detection(
     assert body["source"] == "deterministic"
     assert body["fallback"] is True
     assert body["error"] == "ConnectError"
+    stored = client.get(
+        f"/api/v1/incidents/{incident['id']}", headers=admin_headers
+    ).json()["detection"]["ai_explanation"]
+    assert stored["source"] == "deterministic"
+    assert stored["error"] == "ConnectError"
 
     # Deterministic detection continues to work with a broken AI provider.
     more = [
