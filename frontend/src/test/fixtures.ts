@@ -1,0 +1,180 @@
+import type {
+  Agent,
+  Health,
+  IncidentDetail,
+  IncidentSummary,
+  Overview,
+  SessionDetail,
+  TraceEvent,
+} from "../types";
+
+export const health: Health = {
+  status: "ok",
+  database: "ok",
+  version: "0.1.0",
+  environment: "test",
+  ai_enabled: false,
+  intervention_mode: "approval_required",
+  demo_mode: true,
+  time: "2026-10-29T10:00:00Z",
+};
+
+export const agent: Agent = {
+  id: "agent-support",
+  name: "Support Agent",
+  description: "Handles customer support refunds.",
+  framework: "langgraph",
+  status: "active",
+  is_demo: false,
+  configuration: null,
+  created_at: "2026-10-29T09:00:00Z",
+  last_seen_at: "2026-10-29T09:59:50Z",
+  session_count: 2,
+  event_count: 14,
+  open_incidents: 1,
+  last_session_id: "sess-1",
+};
+
+export const event: TraceEvent = {
+  id: "evt-1",
+  agent_id: agent.id,
+  session_id: "sess-1",
+  timestamp: "2026-10-29T09:59:00Z",
+  received_at: "2026-10-29T09:59:01Z",
+  tool_name: "search_web",
+  action: "Search for a fix",
+  status: "failure",
+  duration_ms: 1400,
+  error_category: "timeout",
+  retry_count: 1,
+  tokens: 1200,
+  cost_usd: 0.004,
+  task: "Resolve refund",
+  parent_event_id: null,
+  correlation_id: "corr-1",
+  metadata: { demo: true },
+  progress: { made_progress: false },
+  model_id: "demo/simulator",
+  normalized_input_hash: "abc123abc123abc123abc123abc12345",
+  sanitized_input: { query: "refund policy" },
+  sanitized_output: { error: "timeout" },
+};
+
+export const session: SessionDetail = {
+  id: "sess-1",
+  agent_id: agent.id,
+  agent_name: agent.name,
+  status: "active",
+  started_at: "2026-10-29T09:58:00Z",
+  ended_at: null,
+  event_count: 4,
+  metadata: { task: "Resolve refund" },
+  open_incidents: 1,
+  events: [event],
+  incidents: [],
+  total_events: 1,
+  page: 1,
+  page_size: 40,
+  pages: 1,
+  tools: ["search_web", "run_tests"],
+};
+
+export const incidentSummary: IncidentSummary = {
+  id: "inc-1",
+  title: "Exact repetition detected in search_web",
+  status: "OPEN",
+  severity: "HIGH",
+  risk_score: 82,
+  agent_id: agent.id,
+  session_id: session.id,
+  agent_name: agent.name,
+  detection_id: "det-1",
+  detection_category: "exact_repetition",
+  confidence: 0.96,
+  created_at: "2026-10-29T09:59:10Z",
+  updated_at: "2026-10-29T09:59:10Z",
+  resolved_at: null,
+  evidence_event_count: 4,
+  evidence_event_ids: ["evt-1", "evt-2", "evt-3", "evt-4"],
+};
+
+export const incidentDetail: IncidentDetail = {
+  ...incidentSummary,
+  detection: {
+    id: "det-1",
+    agent_id: agent.id,
+    session_id: session.id,
+    category: "exact_repetition",
+    severity: "HIGH",
+    risk_score: 82,
+    confidence: 0.96,
+    evidence: {
+      event_ids: ["evt-1", "evt-2", "evt-3", "evt-4"],
+      sequence: [
+        { event_id: "evt-1", tool_name: "search_web", status: "failure", made_progress: false },
+        { event_id: "evt-2", tool_name: "search_web", status: "failure", made_progress: false },
+      ],
+      metrics: { occurrences: 4, failures: 4, progress_signals: 0 },
+      confidence_basis: "Four identical normalized calls within the window.",
+      uncertainty: "A runtime-side retry wrapper cannot be ruled out.",
+    },
+    explanation: "The same failing search call repeated four times without progress.",
+    recommended_action: "Review the last tool output and pause the session.",
+    first_seen_at: "2026-10-29T09:59:00Z",
+    last_seen_at: "2026-10-29T09:59:20Z",
+    created_at: "2026-10-29T09:59:10Z",
+    updated_at: "2026-10-29T09:59:10Z",
+    ai_explanation: null,
+    ai_generated_at: null,
+  },
+  notes: [],
+  interventions: [],
+  audit: [
+    {
+      id: "audit-1",
+      actor: "system",
+      action: "incident.created",
+      resource_type: "incident",
+      resource_id: "inc-1",
+      timestamp: "2026-10-29T09:59:10Z",
+      details: { detector: "exact_repetition" },
+    },
+  ],
+};
+
+export const overview: Overview = {
+  total_agents: 1,
+  active_sessions: 1,
+  open_incidents: 1,
+  high_severity_incidents: 1,
+  repetition_detections: 2,
+  failed_tool_calls: 6,
+  recent_interventions: [],
+  recent_activity: [agent],
+  incident_feed: [incidentSummary],
+  event_series: [
+    { bucket: "2026-10-29T09:00:00Z", events: 2 },
+    { bucket: "2026-10-29T10:00:00Z", events: 4 },
+  ],
+  demo_mode: true,
+  generated_at: "2026-10-29T10:00:00Z",
+};
+
+export const resolvedIncident: IncidentSummary = {
+  ...incidentSummary,
+  id: "inc-2",
+  title: "Repeated failure across tools",
+  status: "RESOLVED",
+  severity: "MEDIUM",
+  detection_category: "repeated_failure",
+  resolved_at: "2026-10-29T09:45:00Z",
+};
+
+export const dismissedIncident: IncidentSummary = {
+  ...incidentSummary,
+  id: "inc-3",
+  title: "Oscillation between read and write",
+  status: "DISMISSED",
+  severity: "LOW",
+  detection_category: "oscillation",
+};
