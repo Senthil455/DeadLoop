@@ -139,7 +139,7 @@ does not delete evidence.
 | --- | --- | --- |
 | `DEADLOOP_ENV` | `development` | Production rejects the default admin token |
 | `DEADLOOP_ADMIN_TOKEN` | `dev-admin-token` | Required strong value in production |
-| `DEADLOOP_DATABASE_URL` | `sqlite:///backend/data/deadloop.db` | Use an absolute SQLite path in production |
+| `DEADLOOP_DATABASE_URL` | absolute `backend/data/deadloop.db` | Use an absolute SQLite path in production |
 | `DEADLOOP_CORS_ORIGINS` | localhost dev origins | Comma-separated exact origins |
 | `DEADLOOP_MAX_REQUEST_BYTES` | `262144` | 256 KiB |
 | `DEADLOOP_MAX_BATCH_SIZE` | `100` | Events per batch |
