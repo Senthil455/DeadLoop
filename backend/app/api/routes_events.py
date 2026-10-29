@@ -44,7 +44,7 @@ def ingest_batch(
     maximum = get_settings().max_batch_size
     if len(payload.events) > maximum:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"Batch exceeds the configured maximum of {maximum} events.",
         )
     return _commit_ingestion(db, ingest_payloads(db, payload.events))

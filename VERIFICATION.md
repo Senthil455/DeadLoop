@@ -10,8 +10,8 @@ defect remains in the verified scope.
 | Item | Value |
 | --- | --- |
 | OS | Windows 11 (10.0.26300) |
-| Backend | Python 3.14.4, FastAPI 0.111.0, Pydantic 2.13.4, SQLAlchemy 2.0.49 |
-| Frontend | Node.js 24.14.1, npm 11.11.0, React 19, Vite 6 |
+| Backend | Python 3.14.4, FastAPI 0.162.0, Starlette 1.10.0, Pydantic 2.13.4, SQLAlchemy 2.0.49, Uvicorn 0.54.0, Alembic 1.20.1 |
+| Frontend | Node.js 24.14.1, npm 11.11.0, React 19, Vite 6, Vitest 5.0.5 |
 | Browser automation | Playwright Core 1.64.1, Chromium headless |
 | Database | SQLite, Alembic revision `08549d51f874` |
 | Docker CLI | 29.8.2; daemon unavailable during verification |
@@ -26,14 +26,16 @@ out interference from globally installed Python packages.
 | Backend pytest | **62 passed, 0 failed** |
 | Backend clean-environment install + pytest | **62 passed, 0 failed** |
 | Backend `pip check` in clean environment | No broken requirements |
+| Python dependency audit | **0 known vulnerabilities** (`pip-audit`) |
 | SDK pytest | **8 passed, 0 failed** |
+| SDK editable install and import | **Passed** in the clean environment |
 | Frontend Vitest | **8 passed, 0 failed** |
 | Frontend production build | **Passed** (644 modules) |
 | Clean-database Alembic upgrade | **Passed**, 11 tables, revision `08549d51f874` |
 | Live API acceptance | **32/32 checks passed** |
 | Live SDK acceptance | **17/17 checks passed** |
 | Browser E2E (desktop + mobile) | **Passed**, 15 screenshots, 0 page errors, 0 unexpected console errors |
-| Production dependency audit | **0 known npm vulnerabilities** in production dependencies |
+| npm audit (all dependencies) | **0 known vulnerabilities** |
 | Docker Compose config validation | **Passed** |
 | Docker image build/run | **Not executed** — Docker daemon unavailable |
 
@@ -115,6 +117,8 @@ found in the verified scope. The following defects were found and corrected duri
 | Sign-in hint said the token was “exchanged for this session only” | Inaccurate: the token is stored in `localStorage` | Corrected copy to describe browser storage accurately |
 | Production default-token guard had no direct test | Security control could regress silently | Added a test that rejects `dev-admin-token` in production and accepts a strong token |
 | SDK package metadata declared MIT while the project had no license | Packaging claimed redistribution terms the repository did not grant | Removed the license metadata; add a project-wide license before distribution |
+| Vitest 3 dev toolchain carried two critical and one moderate advisory | Vulnerable test tooling in the development/CI supply chain | Upgraded to Vitest 5.0.5; all 8 UI tests and the production build passed again; `npm audit` reports zero vulnerabilities |
+| FastAPI 0.111.0 pinned Starlette 0.37.2, which had multiple advisories; the venv's bundled pip was also outdated | Python audit reported known findings in the backend test environment | Upgraded to FastAPI 0.162.0 / Starlette 1.10.0, upgraded pip, updated the deprecated 413 status constant, and reran all 62 backend tests plus live API, SDK, and browser acceptance; `pip-audit` reports zero vulnerabilities |
 
 Existing controls confirmed by tests and live checks: constant-time admin comparison,
 hashed write-only ingestion keys, production default-token rejection, strict payload
@@ -144,6 +148,9 @@ reporting.
 7. **Global Python environment.** `pip check` in the machine-wide environment reported
    unrelated conflicts from global packages (`mcp`, `streamlit`, `moviepy`). The clean
    project virtual environment had no broken requirements.
+8. **Test-client deprecation warning.** Starlette 1.10 recommends `httpx2` for its test
+   client; the suite currently runs with `httpx` and emits one non-blocking deprecation
+   warning. This affects tests only and should be revisited at the next test-stack upgrade.
 
 ## Launch commands
 
