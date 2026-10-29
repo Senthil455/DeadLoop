@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -20,6 +21,20 @@ logger = logging.getLogger("deadloop")
 
 def create_app() -> FastAPI:
     settings = get_settings()
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        settings.validate_runtime()
+        if settings.auto_create_schema:
+            init_database()
+            logger.warning(
+                "DEADLOOP_AUTO_CREATE is enabled. For production, run Alembic migrations and "
+                "set DEADLOOP_AUTO_CREATE=0."
+            )
+        if settings.database_url.startswith("sqlite") and settings.environment != "test":
+            logger.warning("DEADLOOP is using SQLite; bind to localhost unless you intend otherwise.")
+        yield
+
     app = FastAPI(
         title="DEADLOOP",
         description=(
@@ -29,6 +44,7 @@ def create_app() -> FastAPI:
         version=__version__,
         docs_url="/docs",
         redoc_url=None,
+        lifespan=lifespan,
     )
 
     app.add_middleware(
@@ -77,18 +93,6 @@ def create_app() -> FastAPI:
         routes_settings.router,
     ):
         app.include_router(router)
-
-    @app.on_event("startup")
-    def on_startup() -> None:
-        settings.validate_runtime()
-        if settings.auto_create_schema:
-            init_database()
-            logger.warning(
-                "DEADLOOP_AUTO_CREATE is enabled. For production, run Alembic migrations and "
-                "set DEADLOOP_AUTO_CREATE=0."
-            )
-        if settings.database_url.startswith("sqlite") and settings.environment != "test":
-            logger.warning("DEADLOOP is using SQLite; bind to localhost unless you intend otherwise.")
 
     dist = settings.frontend_dist
     index_file = dist / "index.html"
