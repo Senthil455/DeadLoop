@@ -43,6 +43,11 @@ def read_detection_settings(
     return get_detection_settings(db)
 
 
+@router.get("/settings/detection/defaults", response_model=DetectionSettings)
+def detection_defaults(_: str = Depends(require_admin)):
+    return DetectionSettings()
+
+
 @router.put("/settings/detection", response_model=DetectionSettings)
 def update_detection_settings(
     payload: DetectionSettings,
