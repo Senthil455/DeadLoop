@@ -13,6 +13,7 @@ defect remains in the verified scope.
 | Backend | Python 3.14.4, FastAPI 0.162.0, Starlette 1.10.0, Pydantic 2.13.4, SQLAlchemy 2.0.49, Uvicorn 0.54.0, Alembic 1.20.1 |
 | Frontend | Node.js 24.14.1, npm 11.11.0, React 19, Vite 6, Vitest 5.0.5 |
 | Browser automation | Playwright Core 1.64.1, Chromium headless |
+| Local AI runtime | Ollama 0.22.1, Gemma 2 2B (CPU inference, OpenAI-compatible endpoint) |
 | Database | SQLite, Alembic revision `08549d51f874` |
 | Docker CLI | 29.8.2; daemon unavailable during verification |
 
@@ -35,6 +36,7 @@ out interference from globally installed Python packages.
 | Live API acceptance | **32/32 checks passed** |
 | Live SDK acceptance | **17/17 checks passed** |
 | Browser E2E (desktop + mobile) | **Passed**, 15 screenshots, 0 page errors, 0 unexpected console errors |
+| Live local open-weight AI explanation | **Passed**, Gemma 2 2B via Ollama, source `ai`, no fallback, 53.6 s CPU |
 | npm audit (all dependencies) | **0 known vulnerabilities** |
 | Docker Compose config validation | **Passed** |
 | Docker image build/run | **Not executed** — Docker daemon unavailable |
@@ -85,6 +87,13 @@ Browser E2E was a real Chromium session against the built SPA and live backend a
 - captured populated overview metrics and evidence screenshots in
   `docs/screenshots/`.
 
+A separate Chromium check exercised the real local open-weight path against the same
+backend with AI enabled. Gemma 2 2B through Ollama returned a validated explanation
+(`source: ai`, model `gemma2:2b`, no fallback) in 53.6 seconds on CPU. The UI displayed
+the `AI ASSISTED` state, persisted the explanation, and produced
+[`docs/screenshots/local-gemma.png`](docs/screenshots/local-gemma.png) with no page or
+unexpected console errors.
+
 The live API script additionally verified:
 
 - public health status and absence of the admin token in health output;
@@ -128,10 +137,13 @@ reporting.
 
 ## Limitations and remaining issues
 
-1. **Live AI provider not exercised.** No external credential or local model server was
-   available. Provider success, failure, retry, malformed output, and prompt-injection
-   handling are covered by mocked tests; the real deterministic fallback was exercised
-   in Chromium. AI remains optional and is not in the detection path.
+1. **Hosted AI provider not exercised.** No external provider credential was available.
+   The local open-weight path was verified with Gemma 2 2B through Ollama. Provider
+   failure, retry, malformed output, and prompt-injection handling are covered by mocked
+   tests; the real deterministic fallback was exercised in Chromium. AI remains optional
+   and is not in the detection path. CPU inference took ~54 seconds for Gemma 2 2B, so the
+   documented local configuration raises the timeout to 60 seconds; the default 12-second
+   timeout falls back deterministically rather than blocking the request.
 2. **Docker image not built or run.** The Docker CLI is installed, but the daemon was
    unavailable. `docker compose config` validated the Compose definition. The Dockerfile
    and Compose runtime path should be smoke-tested on a host with a running daemon
@@ -200,5 +212,5 @@ deterministic detection without AI dependence, evidence-backed incidents, safe
 approval-gated interventions, honest unsupported-runtime handling, secret redaction,
 strict authentication and validation, a usable desktop/mobile dashboard, a clean
 production build, and a clean-database migration path. Acceptance is granted with the
-limitations above; the unbuilt Docker image and unexercised live AI provider are the two
+limitations above; the unbuilt Docker image and untested hosted AI provider are the two
 external-environment gaps to close before a public production launch.

@@ -43,7 +43,8 @@ calls happened. DEADLOOP answers the next questions:
 - **Operator workflow.** Acknowledge, resolve, dismiss, add investigation notes, attach
   approval context, inspect the audit history, and filter the full session trace.
 - **Local-first AI.** Optional OpenAI-compatible explanations work with a local model
-  server. Detection remains on-device and deterministic either way.
+  server. The verified path uses Gemma 2 2B through Ollama; detection remains
+  on-device and deterministic either way.
 - **Demo lab.** Isolated simulated scenarios for healthy activity, exact repetition,
   oscillation, repeated failure, ambiguous activity, and recovery. Demo data is marked
   in the UI and can be reset explicitly.
@@ -170,6 +171,27 @@ Open `http://127.0.0.1:8000`. The container runs Alembic before starting, disabl
 automatic schema creation, stores SQLite data in the `deadloop-data` volume, binds
 to localhost by default, and runs as a non-root user with a read-only root filesystem.
 
+## Local open-weight AI
+
+The explanation layer can use a local open-weight model through an
+OpenAI-compatible endpoint. The verified configuration is Gemma 2 2B with Ollama.
+Detection, risk scoring, and interventions never depend on this model; if it is
+disabled, slow, or returns invalid output, the deterministic explanation is used.
+
+```powershell
+ollama pull gemma2:2b
+
+$env:DEADLOOP_AI_ENABLED = "true"
+$env:DEADLOOP_AI_BASE_URL = "http://127.0.0.1:11434/v1"
+$env:DEADLOOP_AI_MODEL = "gemma2:2b"
+$env:DEADLOOP_AI_TIMEOUT_SECONDS = "60"
+```
+
+CPU inference can take tens of seconds. A short timeout falls back cleanly rather
+than blocking triage. The verified Gemma explanation is shown in
+[`docs/screenshots/local-gemma.png`](docs/screenshots/local-gemma.png). No API key is
+required for a local Ollama endpoint.
+
 Do not expose this single-admin console directly to the public internet without TLS,
 a reverse proxy, and an authentication decision appropriate to your deployment. See
 [deployment](docs/deployment.md) and [security](docs/security.md).
@@ -205,9 +227,10 @@ The verified results and environment are recorded in [VERIFICATION.md](VERIFICAT
   database adapter/migration is not included in this initial release.
 - The only connected intervention adapter is the demo simulator. Other agents are
   reported as `UNSUPPORTED`; DEADLOOP does not pretend to control them.
-- Live AI-provider connectivity is optional and was not exercised against a real
-  provider during verification. Mocked provider tests and the real deterministic
-  fallback path were verified.
+- A hosted/external AI provider was not exercised because no credential was
+  available. The local open-weight path was verified with Gemma 2 2B through Ollama;
+  mocked tests cover provider failure and malformed output, and the deterministic
+  fallback remains available.
 - No open-source license has been selected yet. Add one before distributing the code.
 
 ## Status
